@@ -643,6 +643,10 @@ select.input {
   font-size: var(--fs-lg);
 }
 
+.share-link .menu-item {
+  white-space: nowrap;
+}
+
 .share-link {
   display: flex;
   gap: 12px;

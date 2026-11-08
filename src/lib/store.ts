@@ -213,7 +213,7 @@ export function cloudRepo(userId: string): Repo {
     async uploadAvatar(characterId, image) {
       // Un archivo nuevo por subida (evita que el navegador muestre la imagen vieja en caché)
       const path = `${userId}/${characterId}-${Date.now()}.webp`
-      check(await db.storage.from('avatars').upload(path, image, { contentType: image.type, upsert: true }))
+      check(await db.storage.from('avatars').upload(path, image, { contentType: image.type, upsert: false }))
       return db.storage.from('avatars').getPublicUrl(path).data.publicUrl
     }
   }
