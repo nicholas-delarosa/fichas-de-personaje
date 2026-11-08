@@ -1,0 +1,66 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.layout-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 32px;
+  width: 100%;
+  max-width: var(--content);
+  margin: 0 auto;
+  padding: 20px var(--gutter);
+}
+
+.layout-logo.menu-item {
+  font-family: var(--font-logo);
+  font-size: var(--fs-lg);
+  letter-spacing: 0.06em;
+}
+
+.layout-options,
+.layout-account {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+}
+
+.layout-account {
+  margin-left: auto;
+  font-size: var(--fs-sm);
+}
+
+/* Sección actual: amarilla aunque el alma esté en otra parte */
+.layout-options .menu-item.active {
+  color: var(--yellow);
+}
+
+.guest-banner {
+  width: 100%;
+  max-width: var(--content);
+  margin: 0 auto 16px;
+  padding: 0 var(--gutter);
+  color: var(--gray);
+  font-size: var(--fs-sm);
+}
+
+.layout-main {
+  flex: 1;
+}
+
+.layout-footer {
+  padding: 24px var(--gutter);
+  border-top: 2px solid var(--dim);
+  color: var(--gray);
+  font-size: var(--fs-sm);
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .layout-account {
+    margin-left: 0;
+  }
+}

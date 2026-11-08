@@ -1,0 +1,292 @@
+@font-face {
+  font-family: 'DTM Sans';
+  src: url('/fonts/DeterminationSansWeb.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'DTM Mono';
+  src: url('/fonts/DeterminationMonoWeb.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'DR Logo';
+  src: url('/fonts/logo_font_dr.ttf') format('truetype');
+  font-display: swap;
+}
+
+:root {
+  /* Paleta del juego */
+  --black: #000000;
+  --white: #ffffff;
+  --yellow: #ffff00;   /* opción seleccionada */
+  --soul: #d535d9;     /* el alma: morada, perseverancia */
+  --error: #ff4b4b;    /* errores de formulario y 404 */
+  --gray: #9a9a9a;     /* texto secundario (contraste AA sobre negro) */
+  --dim: #444444;      /* bordes apagados */
+
+  /* Marcos de menú, como el selector de encuentros del juego */
+  --frame: #cfcaf0;        /* marco lila del panel */
+  --frame-dim: #3d3352;    /* bordes de cajas secundarias */
+  --tab-dim: #6b5a8a;      /* pestañas no activas */
+  --row-selected: #2a2140; /* fondo de la fila elegida */
+
+  /* Colores del grupo para las categorías */
+  --kris: #00c2ff;
+  --susie: #ff6ad5;
+  --ralsei: #5dff8a;
+  --tp: #ff9f2e;
+
+  --font-menu: 'DTM Sans', 'Courier New', monospace;
+  --font-text: 'DTM Mono', 'Courier New', monospace;
+  --font-logo: 'DR Logo', 'DTM Sans', monospace;
+
+  /* Escala tipográfica (las fuentes pixeladas se ven mejor en tamaños enteros) */
+  --fs-sm: 16px;
+  --fs-md: 20px;
+  --fs-lg: 28px;
+  --fs-xl: 40px;
+  --fs-xxl: 64px;
+
+  --border: 4px solid var(--white);
+  --gutter: 16px;
+  --content: 1280px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--black);
+  color: var(--white);
+  scrollbar-color: var(--dim) var(--black);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--black);
+  font-family: var(--font-text);
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+  font-smooth: never;
+}
+
+h1, h2, h3, h4, p, ul, ol, dl, figure {
+  margin: 0;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-menu);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+ul, ol {
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button, input, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+::selection {
+  background: var(--yellow);
+  color: var(--black);
+}
+
+:focus-visible {
+  outline: 2px dashed var(--yellow);
+  outline-offset: 4px;
+}
+
+/* Las opciones de menú muestran el alma en vez del contorno */
+.menu-item:focus-visible {
+  outline: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.pixelated {
+  image-rendering: pixelated;
+}
+
+/* ---------- Piezas reutilizables ---------- */
+
+.box {
+  border: var(--border);
+  background: var(--black);
+  padding: 20px 24px;
+}
+
+.box-title {
+  font-size: var(--fs-lg);
+  margin-bottom: 16px;
+}
+
+.page {
+  width: 100%;
+  max-width: var(--content);
+  margin: 0 auto;
+  padding: 0 var(--gutter) 48px;
+}
+
+.page-title {
+  font-size: var(--fs-xl);
+  margin: 8px 0 24px;
+}
+
+.muted {
+  color: var(--gray);
+}
+
+/*
+  Opción de menú. El alma es el cursor: hay UNA sola (la opción enfocada; el mouse también mueve el foco).
+  No ocupa espacio cuando no está: al llegar crece y empuja el texto, en pasos pixelados.
+*/
+.menu-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 0;
+  font-family: var(--font-menu);
+  color: var(--white);
+  text-align: left;
+}
+
+.menu-item::before,
+.soul-slot::before {
+  content: '';
+  flex: none;
+  display: inline-block;
+  width: 0;
+  height: 0.85em;
+  margin-right: 0;
+  background: url('/soul.png') left center / contain no-repeat;
+  image-rendering: pixelated;
+  transition: width 120ms steps(3), margin-right 120ms steps(3);
+}
+
+.menu-item:focus {
+  color: var(--yellow);
+  outline: none;
+}
+
+.menu-item:focus::before {
+  width: 0.85em;
+  margin-right: 0.45em;
+}
+
+/* Algunos menús ponen el alma en un elemento interno (ej. el título de una tarjeta) */
+.menu-item.soul-inside::before {
+  display: none;
+}
+
+.menu-item.soul-inside:focus .soul-slot::before {
+  width: 0.85em;
+  margin-right: 0.45em;
+}
+
+.menu-item:disabled {
+  color: var(--dim);
+  cursor: default;
+}
+
+/* Tecla en la barra de ayuda: [Z] Confirmar */
+.key {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 0 6px;
+  border: 2px solid var(--dim);
+  color: var(--yellow);
+  font-family: var(--font-menu);
+  text-align: center;
+  line-height: 1.3;
+}
+
+/*
+  Caja del juego (estilo "darkworld"): imagen de 9 partes con las esquinas cruzadas fijas
+  y los lados que se estiran con el contenido. --px = tamaño de cada píxel del borde
+*/
+.dw-box {
+  --px: 2;
+  border: calc(16px * var(--px)) solid transparent;
+  border-image: url('/ui/box-darkworld.png') 16 fill / calc(16px * var(--px)) stretch;
+  image-rendering: pixelated;
+  color: var(--white);
+}
+
+.justify {
+  text-align: justify;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border: 2px solid var(--tag-color, var(--white));
+  color: var(--tag-color, var(--white));
+  font-family: var(--font-menu);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.star {
+  color: var(--yellow);
+}
+
+.status-message {
+  padding-top: 48px;
+  font-size: var(--fs-lg);
+}
+
+@media (max-width: 640px) {
+  :root {
+    --fs-lg: 24px;
+    --fs-xl: 32px;
+    --fs-xxl: 44px;
+  }
+
+  .box {
+    padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

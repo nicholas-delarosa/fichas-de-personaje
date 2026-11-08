@@ -1,0 +1,368 @@
+/*
+  Carta de 340 px de ancho. La completa crece hacia abajo hasta mostrar todo (mínimo 500 px);
+  la compacta (galería) tiene alto fijo y recorta el texto. Para mostrarla más chica se usa zoom
+  (a diferencia de transform, zoom también achica el espacio que ocupa)
+*/
+.card {
+  --accent: var(--soul);
+  --card-scale: 1;
+  flex: none;
+  display: flex;
+  width: 340px;
+  min-height: 500px;
+  zoom: var(--card-scale);
+  color: var(--white);
+  font-family: var(--font-text);
+}
+
+.card--compact {
+  height: 500px;
+}
+
+.card-inner {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 18px 14px;
+  background: var(--black);
+  overflow: hidden;
+}
+
+/* ---------- Marcos ---------- */
+
+.card--dialogo .card-inner {
+  border: 4px solid var(--white);
+}
+
+.card--darkworld .card-inner {
+  --px: 2;
+  padding: 6px 8px 4px;
+  border: calc(16px * var(--px)) solid transparent;
+  /* Imagen embebida (442 bytes) para que también salga al exportar: la captura no descarga border-image */
+  border-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACEAAAAhCAYAAABX5MJvAAABgUlEQVR42u1XXW6DMAx2PPcWO1AfhoRGOWUpQioPPdBukQB7mVHqhsShqpRKs4SKVPvj80+SLwDvYm52yyvjUAvY9WMWkRx/fAVwLmGMlZIfAIC6Pma1gv0lTsiMpqfDcHsAj1nIn5CMuhI+Y0IyhGRyq+ATYIzYsNJWBQjJdPPPcsJPs5Wlepb+cNSrLNS/rh8XY8wif+UT8kthrzMh/xiG29pLmXldH+HwcdhMwk42GCNx71rOL8xafrxtKgAAOF+u63vMmKDvf75cg4N7+v4yD6sjtr41BKTJj/vGBJJzwb11swvOQOrhuK4fo3sFarKJzUCqNbFqqEnsaUNuPEIB9k/ivUhopvvZeNXqsJPdRcBOVrU6itgxURKQB0zbVNA2VXZb+OyQ5BnfT7iIU7QcPRGSd76ycrNb9igqlndSWcnsg/KOnaS02yN0fRxCMiqNGRKle6rAcTL7mOqO3jt8faG9/ITiszcrlurMPLca7C9xnj47kpIs06+oW3kR9gsxMaZfmWI7owAAAABJRU5ErkJggg==') 16 fill / calc(16px * var(--px)) stretch;
+  image-rendering: pixelated;
+}
+
+.card--reliquia .card-inner {
+  border: 4px solid var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: -12px;
+  padding: 24px 24px 18px;
+  background:
+    linear-gradient(135deg, var(--accent) 0 10px, transparent 10px) top left / 22px 22px no-repeat,
+    linear-gradient(225deg, var(--accent) 0 10px, transparent 10px) top right / 22px 22px no-repeat,
+    linear-gradient(45deg, var(--accent) 0 10px, transparent 10px) bottom left / 22px 22px no-repeat,
+    linear-gradient(315deg, var(--accent) 0 10px, transparent 10px) bottom right / 22px 22px no-repeat,
+    #0b0912;
+}
+
+.card--minimal .card-inner {
+  border: 2px solid var(--accent);
+  background: #101010;
+}
+
+/* ---------- Contenido ---------- */
+
+.card-head {
+  text-align: center;
+}
+
+.card-name {
+  font-family: var(--font-menu);
+  font-size: 30px;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.card-name--small {
+  font-size: 22px;
+}
+
+.card-alias {
+  margin-top: 2px;
+  color: var(--accent);
+  font-family: var(--font-menu);
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.card-head--back {
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--dim);
+}
+
+.card-portrait {
+  flex: none;
+  align-self: center;
+  width: 150px;
+  height: 150px;
+  border: 2px solid var(--accent);
+  background: #000;
+}
+
+.card-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-empty {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--dim);
+  font-family: var(--font-logo);
+  font-size: 64px;
+}
+
+/* Los datos cortos se acomodan de a dos por línea; los largos ocupan su propia línea */
+.card-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.card-facts > div {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.card--compact .card-facts > div {
+  flex: 1 1 40%;
+}
+
+.card-facts dt {
+  flex: none;
+  color: var(--accent);
+  font-family: var(--font-menu);
+}
+
+.card-facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.card--compact .card-facts dd,
+.card--compact .card-stat-name {
+  min-width: 0;
+}
+
+.card-facts--plain {
+  flex-direction: column;
+}
+
+.card-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card--compact .card-body {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(#000 85%, transparent);
+  mask-image: linear-gradient(#000 85%, transparent);
+}
+
+.card-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-label {
+  color: var(--yellow);
+  font-family: var(--font-menu);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.card-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.card-stats li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-stat-name {
+  min-width: 0;
+}
+
+/* Barra de 10 segmentos, como la de vida del juego */
+.card-bar {
+  display: flex;
+  gap: 2px;
+}
+
+.card-bar i {
+  width: 8px;
+  height: 10px;
+  background: var(--frame-dim);
+}
+
+.card-bar i.on {
+  background: var(--accent);
+}
+
+.card-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.card-chips li {
+  padding: 0 6px;
+  border: 2px solid var(--accent);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.card-list {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.card-list li::before {
+  content: '* ';
+  color: var(--accent);
+}
+
+.card-clamp {
+  font-size: 14px;
+  line-height: 1.3;
+  white-space: pre-line;
+}
+
+.card--compact .card-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+}
+
+.card--compact .card-clamp--2 {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.card--compact .card-section--text .card-clamp {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.card-body--back {
+  gap: 12px;
+}
+
+.card-quote {
+  margin: 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--accent);
+  font-size: 15px;
+}
+
+.card--compact .card-quote {
+  -webkit-line-clamp: 7;
+  line-clamp: 7;
+}
+
+.card-abilities {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.card-abilities strong {
+  display: block;
+  color: var(--white);
+  font-family: var(--font-menu);
+  font-weight: 400;
+  font-size: 16px;
+}
+
+.card-abilities span {
+  color: var(--gray);
+}
+
+.card-foot {
+  display: flex;
+  justify-content: center;
+}
+
+.card-soul {
+  width: 16px;
+  height: 16px;
+  background: url('/soul.png') center / contain no-repeat;
+  image-rendering: pixelated;
+}
+
+.card-empty {
+  margin-top: 24px;
+  color: var(--dim);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ---------- Volteo ---------- */
+
+/* Las dos caras se apilan en la misma celda: la carta mide lo que la cara más larga */
+.flip {
+  --card-scale: 1;
+  perspective: 1400px;
+  zoom: var(--card-scale);
+}
+
+.flip-inner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 450ms steps(8);
+}
+
+.flip.is-back .flip-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-face {
+  grid-area: 1 / 1;
+  display: flex;
+  backface-visibility: hidden;
+}
+
+.flip-face--back {
+  transform: rotateY(180deg);
+}
+
+.flip-face > .card {
+  flex: 1;
+}
+
+/* Las dos caras juntas (exportación a PNG y PDF) */
+.card-pair {
+  display: flex;
+  align-items: stretch;
+  gap: 32px;
+  padding: 32px;
+  background: var(--black);
+}
