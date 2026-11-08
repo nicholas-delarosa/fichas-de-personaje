@@ -942,15 +942,32 @@ select.input {
   transform: translate(0, -50%);
 }
 
-/* El logo está pegado al borde: ahí el alma tiene su espacio reservado siempre */
-.layout-logo.menu-item::before {
+/*
+  En listas verticales y opciones pegadas a un borde (el logo, la caja de entrar, la lista de plantillas…)
+  el alma no cabe a la izquierda: ahí tiene su espacio reservado siempre junto al texto
+*/
+.layout-logo.menu-item::before,
+.login-options .menu-item::before,
+.choice-list .menu-item::before,
+.empty .menu-item::before,
+.status-message .menu-item::before,
+.legal > .menu-item::before {
   position: static;
   margin-right: 0.45em;
   transform: none;
 }
 
-.layout-logo.menu-item:focus::before {
+.layout-logo.menu-item:focus::before,
+.login-options .menu-item:focus::before,
+.choice-list .menu-item:focus::before,
+.empty .menu-item:focus::before,
+.status-message .menu-item:focus::before,
+.legal > .menu-item:focus::before {
   transform: none;
+}
+
+.login-options {
+  align-items: flex-start;
 }
 
 .legal .box-title {
