@@ -16,6 +16,7 @@ const TemplateEditorPage = lazy(() => import('./pages/TemplateEditorPage'))
 const WorldsPage = lazy(() => import('./pages/WorldsPage'))
 const ExplorePage = lazy(() => import('./pages/ExplorePage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -33,6 +34,8 @@ createRoot(document.getElementById('root')!).render(
               <Route path="mundos" element={<WorldsPage />} />
               <Route path="explorar" element={<ExplorePage />} />
               <Route path="entrar" element={<LoginPage />} />
+              <Route path="privacidad" element={<PrivacyPage />} />
+              <Route path="terminos" element={<PrivacyPage />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

@@ -952,3 +952,7 @@ select.input {
 .layout-logo.menu-item:focus::before {
   transform: none;
 }
+
+.legal .box-title {
+  font-size: var(--fs-md);
+}

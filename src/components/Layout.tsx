@@ -71,6 +71,7 @@ export function Layout() {
       </main>
       <footer className="layout-footer">
         <p>Avatares por piezas: “Pixel Art” de DiceBear (CC0). Fuentes Determination (fan-made).</p>
+        <p><Link to="/privacidad" className="link">Privacidad y condiciones</Link></p>
       </footer>
     </div>
   )
