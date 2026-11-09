@@ -41,19 +41,24 @@ export function Layout() {
   const sound = useSoundEnabled()
   useSoulCursor()
 
+  // Las mismas secciones en el menú de arriba (escritorio) y en la barra de abajo (celular)
+  const sections = (
+    <>
+      <NavLink to="/" end className="menu-item">Mis fichas</NavLink>
+      <NavLink to="/historias" className="menu-item">Historias</NavLink>
+      {cloudEnabled && <NavLink to="/explorar" className="menu-item">Explorar</NavLink>}
+      <NavLink to="/plantillas" className="menu-item">Plantillas</NavLink>
+    </>
+  )
+
   return (
     <div className="layout">
       <header className="layout-header">
         <Link to="/" className="menu-item layout-logo">FICHAS</Link>
-        <nav className="layout-options" aria-label="Principal">
-          <NavLink to="/" end className="menu-item">Mis fichas</NavLink>
-          {cloudEnabled && <NavLink to="/explorar" className="menu-item">Explorar</NavLink>}
-          <NavLink to="/plantillas" className="menu-item">Plantillas</NavLink>
-          <NavLink to="/mundos" className="menu-item">Mundos</NavLink>
-        </nav>
+        <nav className="layout-options" aria-label="Principal">{sections}</nav>
         <div className="layout-account">
-          <button type="button" className="menu-item" onClick={() => setSoundEnabled(!sound)} aria-pressed={sound}>
-            Sonido: {sound ? 'Sí' : 'No'}
+          <button type="button" className="menu-item" onClick={() => setSoundEnabled(!sound)} aria-pressed={sound} aria-label={`Sonido: ${sound ? 'sí' : 'no'}`}>
+            <span className="account-long">Sonido: </span>{sound ? '♪ Sí' : '♪ No'}
           </button>
           {cloudEnabled && (user
             ? <button type="button" className="menu-item" onClick={() => signOut()} title={displayName ?? undefined}>Salir</button>
@@ -62,8 +67,9 @@ export function Layout() {
       </header>
       {!user && (
         <p className="guest-banner">
-          Modo invitado: tus fichas se guardan solo en este navegador.
-          {cloudEnabled && <> <Link to="/entrar" className="link">Entra con tu cuenta</Link> para compartirlas.</>}
+          <span className="account-long">Modo invitado: tus fichas se guardan solo en este navegador.</span>
+          <span className="account-short">Modo invitado (solo este navegador).</span>
+          {cloudEnabled && <> <Link to="/entrar" className="link">Entra con tu cuenta</Link><span className="account-long"> para compartirlas</span>.</>}
         </p>
       )}
       <main className="layout-main">
@@ -73,6 +79,7 @@ export function Layout() {
         <p>Avatares por piezas: “Pixel Art” de DiceBear (CC0). Fuentes Determination (fan-made).</p>
         <p><Link to="/privacidad" className="link">Privacidad y condiciones</Link></p>
       </footer>
+      <nav className="tabbar" aria-label="Secciones">{sections}</nav>
     </div>
   )
 }

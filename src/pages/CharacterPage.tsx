@@ -1,13 +1,14 @@
-import { useState, type CSSProperties } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { useEffect, useState, type CSSProperties } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import type { Character, Visibility } from '../lib/types'
 import { useSession } from '../lib/session'
 import { useLoad } from '../lib/useLoad'
-import { fetchCharacter, fetchCharactersByIds, localRepo } from '../lib/store'
+import { fetchCharacter, fetchCharactersByIds, fetchWorld, localRepo } from '../lib/store'
 import { cloudEnabled } from '../lib/supabase'
 import { downloadCharacter } from '../lib/files'
 import { play } from '../lib/sound'
-import { uid } from '../lib/id'
+import { shortId, uid } from '../lib/id'
+import { characterPath, refFromParam, storyPath } from '../lib/paths'
 import { FlipCard } from '../components/FlipCard'
 import { ExportButtons } from '../components/ExportButtons'
 import { slug } from '../lib/slug'
@@ -16,16 +17,18 @@ import { SheetView } from '../components/SheetView'
 const visibilityShort: Record<Visibility, string> = { private: 'Privada', link: 'Con enlace', public: 'Pública' }
 
 export function CharacterPage() {
-  const { id } = useParams()
+  const { ref: param } = useParams()
+  const ref = refFromParam(param)
   const { repo, user, ready } = useSession()
   const navigate = useNavigate()
+  const location = useLocation()
   const [message, setMessage] = useState<string | null>(null)
 
   const { data, error, loading, setData } = useLoad(async () => {
-    if (!ready || !id) return null
+    if (!ready || !ref) return null
     // Primero lo propio (navegador o cuenta); si no está, puede ser una ficha compartida de otra persona
-    const character = (await repo.getCharacter(id)) ?? (await localRepo.getCharacter(id)) ?? (await fetchCharacter(id))
-    if (!character) return { character: null, linkable: new Set<string>(), world: null }
+    const character = (await repo.getCharacter(ref)) ?? (await localRepo.getCharacter(ref)) ?? (await fetchCharacter(ref))
+    if (!character) return { character: null, linkable: new Map<string, string>(), world: null }
 
     const relationIds = character.sections.flatMap((s) => {
       const v = character.values[s.id]
@@ -35,13 +38,22 @@ export function CharacterPage() {
     const reachable = isLocal
       ? (await localRepo.listCharacters()).filter((c) => relationIds.includes(c.id))
       : await fetchCharactersByIds(relationIds)
-    const worlds = await repo.listWorlds()
+    let world = null
+    if (character.worldId) {
+      world = (await repo.listWorlds()).find((w) => w.id === character.worldId) ?? (isLocal ? null : await fetchWorld(character.worldId))
+    }
     return {
       character,
-      linkable: new Set(reachable.map((c) => c.id)),
-      world: worlds.find((w) => w.id === character.worldId) ?? null
+      linkable: new Map(reachable.map((c) => [c.id, characterPath(c)])),
+      world
     }
-  }, [id, repo, ready])
+  }, [ref, repo, ready])
+
+  // Si el nombre cambió, la URL se actualiza al nombre nuevo (el código es el mismo)
+  const canonical = data?.character ? characterPath(data.character) : null
+  useEffect(() => {
+    if (canonical && location.pathname !== canonical) navigate(canonical, { replace: true })
+  }, [canonical, location.pathname, navigate])
 
   if (!ready || (loading && !data)) return <p className="page status-message">Cargando…</p>
   if (error) return <p className="page status-message form-error">{error}</p>
@@ -57,7 +69,7 @@ export function CharacterPage() {
   const c = data.character
   // Las fichas del modo invitado no tienen dueño: son de quien las tiene en su navegador
   const isOwner = c.ownerId ? c.ownerId === user?.id : repo.kind === 'local'
-  const shareUrl = `${window.location.origin}/ficha/${c.id}`
+  const shareUrl = `${window.location.origin}${characterPath(c)}`
 
   async function setVisibility(visibility: Visibility) {
     try {
@@ -82,12 +94,12 @@ export function CharacterPage() {
 
   async function duplicate() {
     const now = new Date().toISOString()
-    const copy: Character = { ...structuredClone(c), id: uid(), ownerId: user?.id ?? null, name: `${c.name} (copia)`, visibility: 'private', createdAt: now, updatedAt: now }
+    const copy: Character = { ...structuredClone(c), id: uid(), shortId: shortId(), ownerId: user?.id ?? null, name: `${c.name} (copia)`, visibility: 'private', createdAt: now, updatedAt: now }
     if (!isOwner) copy.worldId = null
     try {
       const saved = await repo.saveCharacter(copy)
       play('save')
-      navigate(`/ficha/${saved.id}/editar`)
+      navigate(`${characterPath(saved)}/editar`)
     } catch (e) {
       play('hurt')
       setMessage(e instanceof Error ? e.message : 'No se pudo duplicar.')
@@ -116,14 +128,14 @@ export function CharacterPage() {
           {c.alias && <p className="character-alias" style={{ color: c.style.accent }}>«{c.alias}»</p>}
           <p className="muted">
             {c.ownerName && !isOwner && <>Por {c.ownerName} · </>}
-            {data.world && <>Mundo: <Link className="link" to={`/?mundo=${data.world.id}`}>{data.world.name}</Link> · </>}
+            {data.world && <>Historia: <Link className="link" to={storyPath(data.world)}>{data.world.name}</Link> · </>}
             {isOwner && repo.kind === 'cloud' && <>{visibilityShort[c.visibility]} · </>}
             Actualizada el {new Date(c.updatedAt).toLocaleDateString('es')}
           </p>
         </header>
 
         <div className="button-row character-actions">
-          {isOwner && <Link to={`/ficha/${c.id}/editar`} className="menu-item">Editar</Link>}
+          {isOwner && <Link to={`${characterPath(c)}/editar`} className="menu-item">Editar</Link>}
           <button type="button" className="menu-item" onClick={duplicate}>{isOwner ? 'Duplicar' : 'Copiar a mis fichas'}</button>
           <button type="button" className="menu-item" onClick={() => downloadCharacter(c, slug(c.name))}>Descargar .json</button>
           {isOwner && <button type="button" className="menu-item" onClick={remove}>Borrar</button>}

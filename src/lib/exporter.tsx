@@ -130,7 +130,7 @@ export async function exportPdf(c: Character) {
   const sections = await offscreen(
     <div className="pdf-sheet">
       <div style={{ '--accent': c.style.accent } as CSSProperties}>
-        <SheetView character={c} linkable={new Set()} />
+        <SheetView character={c} linkable={new Map()} />
       </div>
     </div>,
     SHEET_WIDTH,

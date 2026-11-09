@@ -1,5 +1,5 @@
 import type { Block, Character, SectionDef, SectionValue, Template, Relation } from './types'
-import { uid } from './id'
+import { shortId, uid } from './id'
 import { defaultPixelOptions } from './avatar'
 
 const now = () => new Date().toISOString()
@@ -190,6 +190,7 @@ export function newSection(kind: SectionDef['kind']): SectionDef {
 export function characterFromTemplate(template: Template, ownerId: string | null): Character {
   return {
     id: uid(),
+    shortId: shortId(),
     ownerId,
     worldId: null,
     name: '',

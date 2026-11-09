@@ -92,6 +92,7 @@ export type Visibility = 'private' | 'link' | 'public'
 
 export interface Character {
   id: string
+  shortId: string // código corto para la URL: /ficha/nina-williams-k3j9xq2a
   ownerId: string | null
   ownerName?: string
   worldId: string | null
@@ -116,10 +117,15 @@ export interface Template {
   updatedAt: string
 }
 
+// Historia: agrupa personajes (en la base de datos se llama "worlds")
 export interface World {
   id: string
+  shortId: string
   ownerId: string | null
+  ownerName?: string
   name: string
   description: string
+  color: string
+  visibility: 'private' | 'public'
   updatedAt: string
 }

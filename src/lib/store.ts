@@ -1,18 +1,21 @@
 import type { Character, Template, World } from './types'
 import { supabase } from './supabase'
 import { exampleCharacter } from './templates'
+import { isUuid, shortId } from './id'
 
 // Dos almacenes con la misma forma: el del navegador (modo invitado) y el de Supabase (con cuenta)
 export interface Repo {
   kind: 'local' | 'cloud'
   listCharacters(): Promise<Character[]>
-  getCharacter(id: string): Promise<Character | null>
+  // ref = código corto de la URL (o el UUID, para enlaces viejos)
+  getCharacter(ref: string): Promise<Character | null>
   saveCharacter(c: Character): Promise<Character>
   deleteCharacter(id: string): Promise<void>
   listTemplates(): Promise<Template[]>
   saveTemplate(t: Template): Promise<Template>
   deleteTemplate(id: string): Promise<void>
   listWorlds(): Promise<World[]>
+  getWorld(ref: string): Promise<World | null>
   saveWorld(w: World): Promise<World>
   deleteWorld(id: string): Promise<void>
   uploadAvatar(characterId: string, image: Blob): Promise<string>
@@ -20,6 +23,9 @@ export interface Repo {
 
 const touch = <T extends { updatedAt: string }>(x: T): T => ({ ...x, updatedAt: new Date().toISOString() })
 const byUpdated = <T extends { updatedAt: string }>(a: T, b: T) => b.updatedAt.localeCompare(a.updatedAt)
+const matchesRef = (x: { id: string; shortId: string }, ref: string) => x.shortId === ref || x.id === ref
+
+export const DEFAULT_STORY_COLOR = '#d535d9'
 
 /* ---------------- Navegador ---------------- */
 
@@ -52,6 +58,28 @@ function remove(key: string, id: string) {
   writeList(key, readList<{ id: string }>(key).filter((x) => x.id !== id))
 }
 
+// Fichas e historias guardadas antes de que existieran los códigos cortos (o los colores): se completan una vez
+function readCharacters() {
+  const list = readList<Character>(KEYS.characters)
+  if (list.some((c) => !c.shortId)) {
+    const fixed = list.map((c) => (c.shortId ? c : { ...c, shortId: shortId() }))
+    writeList(KEYS.characters, fixed)
+    return fixed
+  }
+  return list
+}
+
+function readWorlds() {
+  const list = readList<World>(KEYS.worlds)
+  if (list.some((w) => !w.shortId)) {
+    // Las historias viejas (antes "mundos") no tenían color ni visibilidad
+    const fixed = list.map((w) => ({ ...w, color: w.color ?? DEFAULT_STORY_COLOR, visibility: w.visibility ?? 'private', shortId: w.shortId || shortId() }))
+    writeList(KEYS.worlds, fixed)
+    return fixed
+  }
+  return list
+}
+
 // La primera visita en modo invitado trae un personaje de ejemplo
 function seedOnce() {
   try {
@@ -75,10 +103,10 @@ export const localRepo: Repo = {
   kind: 'local',
   async listCharacters() {
     seedOnce()
-    return readList<Character>(KEYS.characters).sort(byUpdated)
+    return readCharacters().sort(byUpdated)
   },
-  async getCharacter(id) {
-    return readList<Character>(KEYS.characters).find((c) => c.id === id) ?? null
+  async getCharacter(ref) {
+    return readCharacters().find((c) => matchesRef(c, ref)) ?? null
   },
   async saveCharacter(c) {
     return upsert(KEYS.characters, touch(c))
@@ -96,15 +124,18 @@ export const localRepo: Repo = {
     remove(KEYS.templates, id)
   },
   async listWorlds() {
-    return readList<World>(KEYS.worlds).sort(byUpdated)
+    return readWorlds().sort(byUpdated)
+  },
+  async getWorld(ref) {
+    return readWorlds().find((w) => matchesRef(w, ref)) ?? null
   },
   async saveWorld(w) {
     return upsert(KEYS.worlds, touch(w))
   },
   async deleteWorld(id) {
     remove(KEYS.worlds, id)
-    // Los personajes de ese mundo quedan sin mundo
-    writeList(KEYS.characters, readList<Character>(KEYS.characters).map((c) => (c.worldId === id ? { ...c, worldId: null } : c)))
+    // Los personajes de esa historia quedan sin historia
+    writeList(KEYS.characters, readCharacters().map((c) => (c.worldId === id ? { ...c, worldId: null } : c)))
   },
   async uploadAvatar(_id, image) {
     return blobToDataUrl(image)
@@ -123,6 +154,7 @@ export function clearLocalData() {
 
 interface CharacterRow {
   id: string
+  short_id: string
   owner_id: string
   world_id: string | null
   name: string
@@ -134,10 +166,25 @@ interface CharacterRow {
   profiles?: { display_name: string | null } | null
 }
 
-const toCharacter = (r: CharacterRow): Character => ({
+interface WorldRow {
+  id: string
+  short_id: string
+  owner_id: string
+  name: string
+  description: string
+  color: string
+  visibility: World['visibility']
+  updated_at: string
+  profiles?: { display_name: string | null } | null
+}
+
+interface TemplateRow { id: string; owner_id: string; name: string; description: string; sections: Template['sections']; updated_at: string }
+
+const toCharacter = (r: CharacterRow, ownerName?: string): Character => ({
   id: r.id,
+  shortId: r.short_id,
   ownerId: r.owner_id,
-  ownerName: r.profiles?.display_name ?? undefined,
+  ownerName: r.profiles?.display_name ?? ownerName,
   worldId: r.world_id,
   name: r.name,
   alias: r.alias,
@@ -149,6 +196,7 @@ const toCharacter = (r: CharacterRow): Character => ({
 
 const fromCharacter = (c: Character, ownerId: string) => ({
   id: c.id,
+  short_id: c.shortId,
   owner_id: ownerId,
   world_id: c.worldId,
   name: c.name,
@@ -159,26 +207,42 @@ const fromCharacter = (c: Character, ownerId: string) => ({
   updated_at: new Date().toISOString()
 })
 
+const toWorld = (r: WorldRow): World => ({
+  id: r.id,
+  shortId: r.short_id,
+  ownerId: r.owner_id,
+  ownerName: r.profiles?.display_name ?? undefined,
+  name: r.name,
+  description: r.description,
+  color: r.color,
+  visibility: r.visibility,
+  updatedAt: r.updated_at
+})
+
+const toTemplate = (r: TemplateRow): Template => ({
+  id: r.id, ownerId: r.owner_id, name: r.name, description: r.description, sections: r.sections, updatedAt: r.updated_at
+})
+
 function check<T>(result: { data: T; error: { message: string } | null }): T {
   if (result.error) throw new Error(result.error.message)
   return result.data
 }
 
-const CHARACTER_SELECT = '*, profiles(display_name)'
+const WITH_AUTHOR = '*, profiles(display_name)'
 
 export function cloudRepo(userId: string): Repo {
   const db = supabase!
   return {
     kind: 'cloud',
     async listCharacters() {
-      const rows = check(await db.from('characters').select(CHARACTER_SELECT).eq('owner_id', userId).order('updated_at', { ascending: false }))
-      return (rows as CharacterRow[]).map(toCharacter)
+      const rows = check(await db.from('characters').select(WITH_AUTHOR).eq('owner_id', userId).order('updated_at', { ascending: false }))
+      return (rows as CharacterRow[]).map((r) => toCharacter(r))
     },
-    async getCharacter(id) {
-      return fetchCharacter(id)
+    async getCharacter(ref) {
+      return fetchCharacter(ref)
     },
     async saveCharacter(c) {
-      const row = check(await db.from('characters').upsert(fromCharacter(c, userId)).select(CHARACTER_SELECT).single())
+      const row = check(await db.from('characters').upsert(fromCharacter(c, userId)).select(WITH_AUTHOR).single())
       return toCharacter(row as CharacterRow)
     },
     async deleteCharacter(id) {
@@ -198,13 +262,17 @@ export function cloudRepo(userId: string): Repo {
       check(await db.from('templates').delete().eq('id', id))
     },
     async listWorlds() {
-      const rows = check(await db.from('worlds').select('*').eq('owner_id', userId).order('updated_at', { ascending: false }))
+      const rows = check(await db.from('worlds').select(WITH_AUTHOR).eq('owner_id', userId).order('updated_at', { ascending: false }))
       return (rows as WorldRow[]).map(toWorld)
+    },
+    async getWorld(ref) {
+      return fetchWorld(ref)
     },
     async saveWorld(w) {
       const row = check(await db.from('worlds').upsert({
-        id: w.id, owner_id: userId, name: w.name, description: w.description, updated_at: new Date().toISOString()
-      }).select('*').single())
+        id: w.id, short_id: w.shortId, owner_id: userId, name: w.name, description: w.description,
+        color: w.color, visibility: w.visibility, updated_at: new Date().toISOString()
+      }).select(WITH_AUTHOR).single())
       return toWorld(row as WorldRow)
     },
     async deleteWorld(id) {
@@ -219,42 +287,62 @@ export function cloudRepo(userId: string): Repo {
   }
 }
 
-interface TemplateRow { id: string; owner_id: string; name: string; description: string; sections: Template['sections']; updated_at: string }
-interface WorldRow { id: string; owner_id: string; name: string; description: string; updated_at: string }
+async function authorName(ownerId: string) {
+  const { data } = await supabase!.from('profiles').select('display_name').eq('id', ownerId).maybeSingle()
+  return (data as { display_name: string | null } | null)?.display_name ?? undefined
+}
 
-const toTemplate = (r: TemplateRow): Template => ({
-  id: r.id, ownerId: r.owner_id, name: r.name, description: r.description, sections: r.sections, updatedAt: r.updated_at
-})
-const toWorld = (r: WorldRow): World => ({
-  id: r.id, ownerId: r.owner_id, name: r.name, description: r.description, updatedAt: r.updated_at
-})
-
-// Lectura sin importar el dueño: las reglas de la base solo dejan ver fichas propias, públicas o con enlace
-export async function fetchCharacter(id: string): Promise<Character | null> {
+/*
+  Una ficha por su código, sea de quien sea. Las fichas "con enlace" no se pueden listar
+  (las reglas de la base solo dejan ver las públicas y las propias): se piden con una función
+  de la base que exige conocer el código exacto
+*/
+export async function fetchCharacter(ref: string): Promise<Character | null> {
   if (!supabase) return null
-  const { data, error } = await supabase.from('characters').select(CHARACTER_SELECT).eq('id', id).maybeSingle()
+  const rows = check(await supabase.rpc('character_by_code', { code: ref }))
+  const row = (rows as CharacterRow[] | null)?.[0]
+  return row ? toCharacter(row, await authorName(row.owner_id)) : null
+}
+
+export async function fetchWorld(ref: string): Promise<World | null> {
+  if (!supabase) return null
+  const query = supabase.from('worlds').select(WITH_AUTHOR)
+  const { data, error } = await (isUuid(ref) ? query.eq('id', ref) : query.eq('short_id', ref)).maybeSingle()
   if (error) throw new Error(error.message)
-  return data ? toCharacter(data as CharacterRow) : null
+  return data ? toWorld(data as WorldRow) : null
+}
+
+// Fichas de una historia que el usuario puede ver: todas si es suya, solo las públicas si no
+export async function listStoryCharacters(worldId: string): Promise<Character[]> {
+  if (!supabase) return []
+  const rows = check(await supabase.from('characters').select(WITH_AUTHOR).eq('world_id', worldId).order('updated_at', { ascending: false }))
+  return (rows as CharacterRow[]).map((r) => toCharacter(r))
 }
 
 export async function listPublicCharacters(): Promise<Character[]> {
   if (!supabase) return []
-  const rows = check(await supabase.from('characters').select(CHARACTER_SELECT).eq('visibility', 'public').order('updated_at', { ascending: false }).limit(60))
-  return (rows as CharacterRow[]).map(toCharacter)
+  const rows = check(await supabase.from('characters').select(WITH_AUTHOR).eq('visibility', 'public').order('updated_at', { ascending: false }).limit(60))
+  return (rows as CharacterRow[]).map((r) => toCharacter(r))
 }
 
-// Personajes públicos del mismo autor, para resolver los enlaces de "Relaciones" en una ficha compartida
+export async function listPublicStories(): Promise<World[]> {
+  if (!supabase) return []
+  const rows = check(await supabase.from('worlds').select(WITH_AUTHOR).eq('visibility', 'public').order('updated_at', { ascending: false }).limit(60))
+  return (rows as WorldRow[]).map(toWorld)
+}
+
+// Personajes enlazados en "Relaciones" que el visitante puede ver (propios o públicos)
 export async function fetchCharactersByIds(ids: string[]): Promise<Character[]> {
   if (!supabase || ids.length === 0) return []
-  const rows = check(await supabase.from('characters').select(CHARACTER_SELECT).in('id', ids))
-  return (rows as CharacterRow[]).map(toCharacter)
+  const rows = check(await supabase.from('characters').select(WITH_AUTHOR).in('id', ids))
+  return (rows as CharacterRow[]).map((r) => toCharacter(r))
 }
 
 // Pasa las fichas del modo invitado a la cuenta. Los ids se conservan, así las relaciones siguen enlazadas
 export async function migrateLocalToCloud(repo: Repo) {
-  for (const w of readList<World>(KEYS.worlds)) await repo.saveWorld(w)
+  for (const w of readWorlds()) await repo.saveWorld(w)
   for (const t of readList<Template>(KEYS.templates)) await repo.saveTemplate(t)
-  for (const c of readList<Character>(KEYS.characters)) {
+  for (const c of readCharacters()) {
     let avatar = c.avatar
     if (avatar.mode === 'image' && avatar.url.startsWith('data:')) {
       const blob = await (await fetch(avatar.url)).blob()

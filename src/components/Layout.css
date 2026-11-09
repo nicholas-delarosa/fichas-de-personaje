@@ -64,3 +64,80 @@
     margin-left: 0;
   }
 }
+
+/* ---------- Celular: barra compacta arriba y navegación fija abajo ---------- */
+
+.tabbar,
+.account-short {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .layout {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom));
+  }
+
+  .layout-header {
+    flex-wrap: nowrap;
+    padding: 12px var(--gutter);
+  }
+
+  .layout-header .layout-options,
+  .account-long {
+    display: none;
+  }
+
+  .account-short {
+    display: inline;
+  }
+
+  .layout-logo.menu-item {
+    font-size: 22px;
+  }
+
+  .layout-account {
+    margin-left: auto;
+    gap: 4px 18px;
+    font-size: 14px;
+  }
+
+  .guest-banner {
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+
+  .tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: space-around;
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+    background: var(--black);
+    border-top: 2px solid var(--dim);
+  }
+
+  .tabbar .menu-item {
+    flex: 1;
+    justify-content: center;
+    min-height: 48px;
+    font-size: 15px;
+    color: var(--gray);
+  }
+
+  /* En la barra táctil no hay alma: la sección actual se marca en amarillo */
+  .tabbar .menu-item::before {
+    display: none;
+  }
+
+  .tabbar .menu-item.active {
+    color: var(--yellow);
+  }
+
+  .layout-footer {
+    padding: 16px var(--gutter);
+    font-size: 13px;
+  }
+}

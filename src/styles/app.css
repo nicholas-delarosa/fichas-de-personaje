@@ -873,17 +873,9 @@ select.input {
   }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 380px) {
   .flip {
-    --card-scale: 0.85;
-  }
-
-  .card-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  }
-
-  .card.card--mini {
-    --card-scale: 0.44;
+    --card-scale: 0.88;
   }
 }
 
@@ -972,4 +964,247 @@ select.input {
 
 .legal .box-title {
   font-size: var(--fs-md);
+}
+
+/* ---------- Campos de una línea que crecen ---------- */
+
+.textarea--line {
+  resize: none;
+  overflow: hidden;
+  field-sizing: content;
+  min-height: 0;
+}
+
+.list-row {
+  align-items: flex-start;
+}
+
+.list-row .list-bullet {
+  padding-top: 6px;
+}
+
+.form-note--after {
+  margin: 8px 0 0;
+  font-size: var(--fs-sm);
+}
+
+/* Correos y enlaces largos no desbordan la pantalla */
+.legal a,
+.sheet-text,
+.story-desc {
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Historias ---------- */
+
+.story-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.story-tile.menu-item {
+  --story: var(--soul);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  height: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--frame-dim);
+  border-left: 8px solid var(--story);
+  background: #07060b;
+}
+
+.story-tile.menu-item:focus {
+  border-color: var(--story);
+  color: var(--white);
+}
+
+.story-tile-name {
+  display: flex;
+  align-items: center;
+  font-size: var(--fs-lg);
+  line-height: 1.15;
+}
+
+.story-tile.menu-item:focus .story-tile-name {
+  color: var(--yellow);
+}
+
+.story-tile-desc {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  color: var(--gray);
+  font-family: var(--font-text);
+  font-size: var(--fs-sm);
+}
+
+.story-tile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-top: auto;
+  color: var(--frame);
+  font-size: var(--fs-sm);
+}
+
+.story-loose {
+  margin-top: 24px;
+}
+
+.story-page {
+  --story: var(--soul);
+}
+
+.story-head {
+  padding-left: 16px;
+  border-left: 8px solid var(--story);
+}
+
+.story-head .page-title {
+  margin: 0;
+}
+
+.story-kicker {
+  color: var(--story);
+  font-family: var(--font-menu);
+  font-size: var(--fs-sm);
+}
+
+.story-desc {
+  max-width: 70ch;
+  margin-top: 8px;
+  white-space: pre-line;
+}
+
+.story-actions {
+  margin: 20px 0 12px;
+}
+
+.story-page .share-link,
+.story-add {
+  max-width: 640px;
+  margin: 12px 0;
+}
+
+.story-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 720px;
+}
+
+.story-edit .form-field + .form-field {
+  margin-top: 0;
+}
+
+.empty-story {
+  margin-top: 24px;
+}
+
+/* ---------- Vista previa del editor en el celular ---------- */
+
+.preview-toggle,
+.preview-close {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .preview-toggle {
+    display: inline-flex;
+  }
+
+  .editor-preview {
+    display: none;
+  }
+
+  .editor-preview.is-open {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px var(--gutter) 32px;
+    overflow-y: auto;
+    background: var(--black);
+  }
+
+  .editor-preview.is-open .preview-close {
+    display: inline-flex;
+    align-self: flex-end;
+  }
+
+  .editor-preview .flip-wrap {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+/* ---------- Celular ---------- */
+
+@media (max-width: 640px) {
+  .page-title {
+    font-size: 30px;
+  }
+
+  .box {
+    padding: 14px;
+  }
+
+  .block-card {
+    padding: 10px;
+  }
+
+  /* Dos cartas por fila en la galería */
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 12px;
+  }
+
+  .card.card--mini {
+    --card-scale: 0.47;
+  }
+
+  .gallery-caption {
+    font-size: 16px;
+  }
+
+  .sheet-text,
+  .justify {
+    text-align: left;
+  }
+
+  .editor-bar .page-title {
+    font-size: 26px;
+  }
+
+  .icon-btn {
+    width: 26px;
+    height: 26px;
+  }
+
+  .story-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .story-tile-name {
+    font-size: var(--fs-md);
+  }
+
+  .character-page {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 360px) {
+  .card.card--mini {
+    --card-scale: 0.43;
+  }
 }

@@ -6,6 +6,7 @@ import { useLoad } from '../lib/useLoad'
 import { builtinTemplates, characterFromTemplate, copyTemplate, valueOf } from '../lib/templates'
 import { play } from '../lib/sound'
 import { uid } from '../lib/id'
+import { characterPath, refFromParam } from '../lib/paths'
 import { FlipCard } from '../components/FlipCard'
 import { ExportButtons } from '../components/ExportButtons'
 import { ValueEditor } from '../components/ValueEditor'
@@ -28,9 +29,11 @@ export const visibilityLabels: Record<Visibility, string> = {
 }
 
 export default function EditorPage() {
-  const { id } = useParams()
+  const { ref: param } = useParams()
+  const id = refFromParam(param)
   const [params] = useSearchParams()
   const templateId = params.get('plantilla') ?? builtinTemplates[0].id
+  const storyId = params.get('historia')
   const navigate = useNavigate()
   const { repo, user, ready } = useSession()
 
@@ -39,6 +42,8 @@ export default function EditorPage() {
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
   const [showStructure, setShowStructure] = useState(false)
+  // En el celular la vista previa es una capa que se abre y se cierra
+  const [showPreview, setShowPreview] = useState(false)
 
   const { data, error } = useLoad(async () => {
     if (!ready) return null
@@ -49,9 +54,11 @@ export default function EditorPage() {
     } else {
       const template = [...builtinTemplates, ...templates].find((t) => t.id === templateId) ?? builtinTemplates[0]
       character = characterFromTemplate(template, user?.id ?? null)
+      // Ficha creada desde una historia: ya viene asignada a ella
+      if (storyId && worlds.some((w) => w.id === storyId)) character.worldId = storyId
     }
     return { worlds, characters, character }
-  }, [id, templateId, repo, ready])
+  }, [id, templateId, storyId, repo, ready])
 
   useEffect(() => {
     if (data?.character) {
@@ -84,7 +91,7 @@ export default function EditorPage() {
   if (!data || !draft) return <p className="page status-message">Cargando…</p>
   if (!data.character) return <p className="page status-message">Esa ficha no existe.</p>
   if (user && draft.ownerId && draft.ownerId !== user.id) {
-    return <p className="page status-message">Esta ficha es de otra persona. <Link className="link" to={`/ficha/${draft.id}`}>Verla</Link></p>
+    return <p className="page status-message">Esta ficha es de otra persona. <Link className="link" to={characterPath(draft)}>Verla</Link></p>
   }
 
   const update = (patch: Partial<Character>) => {
@@ -109,7 +116,7 @@ export default function EditorPage() {
       setDirty(false)
       play('save')
       setStatus({ kind: 'ok', text: 'Guardado.' })
-      if (!id) navigate(`/ficha/${saved.id}/editar`, { replace: true })
+      if (!id) navigate(`${characterPath(saved)}/editar`, { replace: true })
     } catch (e) {
       play('hurt')
       setStatus({ kind: 'error', text: e instanceof Error ? e.message : 'No se pudo guardar.' })
@@ -145,9 +152,10 @@ export default function EditorPage() {
           {status && <span className={status.kind === 'error' ? 'form-error' : 'status-ok'} role="status">{status.text}</span>}
           {dirty && !status && <span className="muted">Cambios sin guardar</span>}
           <button type="button" className="menu-item" disabled={saving} onClick={save}>{saving ? 'Guardando…' : 'Guardar'}</button>
+          <button type="button" className="menu-item preview-toggle" aria-expanded={showPreview} onClick={() => setShowPreview(true)}>Ver carta</button>
           {id && (
             <Link
-              to={`/ficha/${draft.id}`}
+              to={characterPath(draft)}
               className="menu-item"
               onClick={(e) => { if (dirty && !confirm('Hay cambios sin guardar. ¿Salir igual?')) e.preventDefault() }}
             >
@@ -171,9 +179,9 @@ export default function EditorPage() {
                 <input className="input" value={draft.alias} placeholder="La asesina de hechiceros" onChange={(e) => update({ alias: e.target.value })} />
               </label>
               <label className="form-field">
-                <span className="form-label">Mundo</span>
+                <span className="form-label">Historia</span>
                 <select className="input" value={draft.worldId ?? ''} onChange={(e) => update({ worldId: e.target.value || null })}>
-                  <option value="">Sin mundo</option>
+                  <option value="">Sin historia</option>
                   {data.worlds.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
                 </select>
               </label>
@@ -186,7 +194,7 @@ export default function EditorPage() {
                 </label>
               )}
             </div>
-            {data.worlds.length === 0 && <p className="muted form-note">Para agrupar personajes por historia, crea un mundo en <Link className="link" to="/mundos">Mundos</Link>.</p>}
+            {data.worlds.length === 0 && <p className="muted form-note form-note--after">Para agrupar personajes por historia, crea una en <Link className="link" to="/historias">Historias</Link>.</p>}
           </section>
 
           <section className="box">
@@ -245,7 +253,8 @@ export default function EditorPage() {
           </section>
         </div>
 
-        <aside className="editor-preview" aria-label="Vista previa de la carta">
+        <aside className={`editor-preview ${showPreview ? 'is-open' : ''}`} aria-label="Vista previa de la carta">
+          <button type="button" className="menu-item preview-close" onClick={() => setShowPreview(false)}>Cerrar vista previa</button>
           <FlipCard character={draft}><ExportButtons character={draft} /></FlipCard>
           <p className="muted preview-note">Así se ve la carta. La ficha completa muestra todo el texto.</p>
         </aside>

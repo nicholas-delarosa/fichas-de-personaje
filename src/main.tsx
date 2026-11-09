@@ -1,6 +1,6 @@
 import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Route, Routes } from 'react-router'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { SessionProvider } from './lib/session'
 import { Layout } from './components/Layout'
 import { HomePage } from './pages/HomePage'
@@ -13,7 +13,8 @@ import './styles/app.css'
 const EditorPage = lazy(() => import('./pages/EditorPage'))
 const TemplatesPage = lazy(() => import('./pages/TemplatesPage'))
 const TemplateEditorPage = lazy(() => import('./pages/TemplateEditorPage'))
-const WorldsPage = lazy(() => import('./pages/WorldsPage'))
+const StoriesPage = lazy(() => import('./pages/StoriesPage'))
+const StoryPage = lazy(() => import('./pages/StoryPage'))
 const ExplorePage = lazy(() => import('./pages/ExplorePage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
@@ -27,11 +28,13 @@ createRoot(document.getElementById('root')!).render(
             <Route element={<Layout />}>
               <Route index element={<HomePage />} />
               <Route path="nueva" element={<EditorPage />} />
-              <Route path="ficha/:id" element={<CharacterPage />} />
-              <Route path="ficha/:id/editar" element={<EditorPage />} />
+              <Route path="ficha/:ref" element={<CharacterPage />} />
+              <Route path="ficha/:ref/editar" element={<EditorPage />} />
+              <Route path="historias" element={<StoriesPage />} />
+              <Route path="historia/:ref" element={<StoryPage />} />
               <Route path="plantillas" element={<TemplatesPage />} />
               <Route path="plantillas/:id" element={<TemplateEditorPage />} />
-              <Route path="mundos" element={<WorldsPage />} />
+              <Route path="mundos" element={<Navigate to="/historias" replace />} />
               <Route path="explorar" element={<ExplorePage />} />
               <Route path="entrar" element={<LoginPage />} />
               <Route path="privacidad" element={<PrivacyPage />} />

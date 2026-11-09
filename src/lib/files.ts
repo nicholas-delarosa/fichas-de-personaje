@@ -1,12 +1,12 @@
 import type { Character } from './types'
-import { uid } from './id'
+import { shortId, uid } from './id'
 
 // Formato de archivo para respaldar o pasar una ficha sin cuenta
 const FORMAT = 'fichas-de-personaje'
 const VERSION = 1
 
 export function downloadCharacter(c: Character, filename: string) {
-  const { ownerId: _o, ownerName: _n, worldId: _w, ...rest } = c
+  const { ownerId: _o, ownerName: _n, worldId: _w, shortId: _s, ...rest } = c
   const blob = new Blob([JSON.stringify({ format: FORMAT, version: VERSION, character: rest }, null, 2)], { type: 'application/json' })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
@@ -31,6 +31,7 @@ export async function importCharacter(file: File, ownerId: string | null): Promi
   // Siempre entra como una ficha nueva y privada
   return {
     id: uid(),
+    shortId: shortId(),
     ownerId,
     worldId: null,
     name: String(c.name ?? ''),

@@ -10,7 +10,7 @@ export default function PrivacyPage() {
         <h2 className="box-title">Qué datos guardamos</h2>
         <ul className="sheet-list">
           <li>Al entrar con GitHub o Google: tu nombre, tu correo y tu foto de perfil, solo para identificarte y mostrarte como autor de tus fichas.</li>
-          <li>Las fichas, plantillas y mundos que creas, y las imágenes de avatar que subes.</li>
+          <li>Las fichas, plantillas e historias que creas, y las imágenes de avatar que subes.</li>
           <li>En modo invitado no se guarda nada en nuestros servidores: todo queda en tu navegador.</li>
         </ul>
       </section>

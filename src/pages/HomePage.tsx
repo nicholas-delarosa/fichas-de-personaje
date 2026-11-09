@@ -12,7 +12,7 @@ export function HomePage() {
   const { repo, user, ready } = useSession()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
-  const worldFilter = params.get('mundo')
+  const worldFilter = params.get('historia')
   const [choosing, setChoosing] = useState(false)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -95,10 +95,10 @@ export function HomePage() {
       {message && <p className="status-line" role="status">{message}</p>}
 
       {(data?.worlds.length ?? 0) > 0 && (
-        <div className="filter-row" role="group" aria-label="Filtrar por mundo">
+        <div className="filter-row" role="group" aria-label="Filtrar por historia">
           <button type="button" className={`tag tag-btn ${!worldFilter ? 'is-active' : ''}`} onClick={() => setParams({})}>Todos</button>
           {data!.worlds.map((w) => (
-            <button key={w.id} type="button" className={`tag tag-btn ${worldFilter === w.id ? 'is-active' : ''}`} onClick={() => setParams({ mundo: w.id })}>{w.name || 'Sin nombre'}</button>
+            <button key={w.id} type="button" className={`tag tag-btn ${worldFilter === w.id ? 'is-active' : ''}`} onClick={() => setParams({ historia: w.id })}>{w.name || 'Sin nombre'}</button>
           ))}
         </div>
       )}
@@ -107,7 +107,7 @@ export function HomePage() {
       {error && <p className="form-error">{error}</p>}
       {data && characters.length === 0 && (
         <div className="empty">
-          <p>{worldFilter ? 'No hay personajes en este mundo todavía.' : 'Todavía no tienes personajes.'}</p>
+          <p>{worldFilter ? 'No hay personajes en esta historia todavía.' : 'Todavía no tienes personajes.'}</p>
           {!worldFilter && (
             <button type="button" className="menu-item" disabled={busy} onClick={() => run(async () => { await repo.saveCharacter(exampleCharacter(user?.id ?? null)) }, 'Personaje de ejemplo creado.')}>
               Ver un personaje de ejemplo

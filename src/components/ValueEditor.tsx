@@ -73,8 +73,10 @@ export function ListInput({ items, itemLabel, onChange }: { items: string[]; ite
       {items.map((item, i) => (
         <div key={i} className="list-row">
           <span className="list-bullet" aria-hidden="true">*</span>
-          <input
-            className="input"
+          {/* Una línea que crece hacia abajo: el texto largo se lee completo, también en el celular */}
+          <textarea
+            className="input textarea--line"
+            rows={1}
             value={item}
             aria-label={`${itemLabel} ${i + 1}`}
             onChange={(e) => set(i, e.target.value)}
@@ -84,7 +86,7 @@ export function ListInput({ items, itemLabel, onChange }: { items: string[]; ite
                 e.preventDefault()
                 onChange([...items.slice(0, i + 1), '', ...items.slice(i + 1)])
                 requestAnimationFrame(() => {
-                  const inputs = (e.target as HTMLElement).closest('.list-input')?.querySelectorAll('input')
+                  const inputs = (e.target as HTMLElement).closest('.list-input')?.querySelectorAll<HTMLTextAreaElement>(':scope > .list-row > textarea')
                   inputs?.[i + 1]?.focus()
                 })
               }
@@ -108,12 +110,13 @@ function BlocksInput({ section, blocks, onChange }: { section: SectionDef; block
       {blocks.map((b, i) => (
         <div key={b.id} className="block-card">
           <div className="block-row">
-            <input
-              className="input input--title"
+            <textarea
+              className="input input--title textarea--line"
+              rows={1}
               placeholder="Nombre"
               aria-label={`Nombre (${label} ${i + 1})`}
               value={b.name}
-              onChange={(e) => set(b.id, { name: e.target.value })}
+              onChange={(e) => set(b.id, { name: e.target.value.replace(/\n/g, ' ') })}
             />
             <RowActions index={i} length={blocks.length} label={label} onMove={(d) => onChange(move(blocks, i, d))} onRemove={() => onChange(blocks.filter((x) => x.id !== b.id))} />
           </div>

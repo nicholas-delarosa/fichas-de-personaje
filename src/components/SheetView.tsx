@@ -3,7 +3,7 @@ import type { Character, SectionDef } from '../lib/types'
 import { valueOf } from '../lib/templates'
 
 // Ficha completa: todas las secciones con todo su texto (la carta solo muestra un resumen)
-export function SheetView({ character, linkable }: { character: Character; linkable: Set<string> }) {
+export function SheetView({ character, linkable }: { character: Character; linkable: Map<string, string> }) {
   const sections = character.sections.filter((s) => hasContent(character, s))
   if (sections.length === 0) return <p className="muted">Esta ficha todavía está vacía.</p>
   return (
@@ -29,7 +29,7 @@ export function hasContent(c: Character, s: SectionDef) {
   }
 }
 
-function SectionContent({ character, section, linkable }: { character: Character; section: SectionDef; linkable: Set<string> }) {
+function SectionContent({ character, section, linkable }: { character: Character; section: SectionDef; linkable: Map<string, string> }) {
   const v = valueOf(character, section)
   switch (v.kind) {
     case 'fields':
@@ -90,7 +90,7 @@ function SectionContent({ character, section, linkable }: { character: Character
           {v.relations.filter((r) => r.name.trim()).map((r) => (
             <li key={r.id}>
               {r.characterId && linkable.has(r.characterId)
-                ? <Link className="menu-item" to={`/ficha/${r.characterId}`}>{r.name}</Link>
+                ? <Link className="menu-item" to={linkable.get(r.characterId)!}>{r.name}</Link>
                 : <strong>{r.name}</strong>}
               {r.type && <span className="tag">{r.type}</span>}
               {r.description && <p className="sheet-text">{r.description}</p>}

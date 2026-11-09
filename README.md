@@ -20,7 +20,8 @@ Con Supabase configurado aparecen el login, Explorar y los enlaces para comparti
 
 1. Crea un proyecto gratis en https://supabase.com (región: la más cercana, ej. São Paulo).
 2. **SQL Editor → New query**: pega todo `supabase/schema.sql` y dale **Run**.
-   Crea las tablas, las reglas de acceso y el bucket `avatars`.
+   Crea las tablas, las reglas de acceso y el bucket `avatars`. Se puede volver a ejecutar.
+   Si la base ya existía, basta con ejecutar las migraciones nuevas de `supabase/migrations/`.
 3. **Project Settings → API**: copia la *Project URL* y la *anon / publishable key* a un archivo
    `.env.local` (usa `.env.example` de guía). Esa clave es pública por diseño: la seguridad la dan las reglas del paso 2.
 4. **Authentication → URL Configuration**:
